@@ -70,7 +70,7 @@ $searchJson = '
 {
     "query": {
     "multi_match": {
-        "query": '.$current_text.',
+        "query": "'.$current_text.'",
       "fields": ["content_line_*"]
     }
   },
@@ -82,7 +82,7 @@ $searchJson = '
 }
 ';
 
-$url = 'http:'.$eSHosts[0].'/'.$eSArticleIndex['index'].'/';
+$url = 'http://'.$eSHosts[0].'/'.$eSArticleIndex['index'].'/_search';
 $response = curl_post($url, $searchJson );
 
 print_r($response);
