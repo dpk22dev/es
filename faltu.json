@@ -1,0 +1,1 @@
+{"index":"my_index","type":"my_type","body":{"query":{"multi_match":{"query":"\u0915\u0935\u093f\u0924\u093e","fields":["content_line_*"]}},"highlight":{"fields":{"content_line_*":[]}}}}

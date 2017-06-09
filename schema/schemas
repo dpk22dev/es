@@ -1,0 +1,278 @@
+**************
+take care of multiline string
+**************
+
+article
+	content
+	tags
+	author
+	movie-name
+	book-name
+	
+
+string field with analyzer
+
+
+{
+  "mappings": {
+    
+    "article": { 
+      "_all":       { "enabled": false  }, 
+      "properties": { 
+        "content":    { "type": "text"  }, 
+        "tags":     { "type": "text"  }, 
+        "authors":      { "type": "text" },
+        "movie_name": { "type": "text" },
+        "book_name" : { "type": "text" }
+      }
+    }
+    
+  }
+}
+
+
+*************************************************************************************
+index_v1
+
+PUT /article_index
+{
+  "settings": {
+    "analysis": {
+      "filter": {
+        "hindi_stop": {
+          "type": "stop",
+          "stopwords": "_hindi_"
+        },
+        "hindi_keywords": {
+          "type": "keyword_marker",
+          "keywords": [
+            "उदाहरण"
+          ]
+        },
+        "hindi_stemmer": {
+          "type": "stemmer",
+          "language": "hindi"
+        }
+      },
+      "analyzer": {
+        "hindi": {
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "indic_normalization",
+            "hindi_normalization",
+            "hindi_stop",
+            "hindi_keywords",
+            "hindi_stemmer"
+          ]
+        }
+      }
+    }
+  },
+  
+    "mappings": {
+    
+    "article": { 
+      "_all":       { "enabled": false  }, 
+      "properties": { 
+        "content":    { "type": "text"  }, 
+        "tags":     { "type": "text"  }, 
+        "authors":      { "type": "text" },
+        "movie_name": { "type": "text" },
+        "book_name" : { "type": "text" }
+      }
+    }
+    
+  }
+  
+}
+
+*****************************************************************
+insert
+PUT /article_index/article/1
+{
+          "content":    "तेरी आँखों की नमकीन मस्तियाँ" ,
+        "tags":   [ "आदित्य चोपड़ा", "जब तक है जान" ],
+        "authors":   "आदित्य चोपड़ा",
+        "movie_name": "जब तक है जान",
+        "book_name" : ""
+}
+
+*****************************************************************
+search_v1
+
+POST /article_index/article/_search
+{
+    "query": {
+        "bool" : {
+            "must" : {
+                "query_string" : {
+                    "query" : "चोपड़ा"
+                }
+            }
+        }
+    }
+}
+
+
+*************************************************************************************
+index_v2
+
+PUT /article_index
+{
+  "settings": {
+    "analysis": {
+      "filter": {
+        "hindi_stop": {
+          "type": "stop",
+          "stopwords": "_hindi_"
+        },
+        "hindi_keywords": {
+          "type": "keyword_marker",
+          "keywords": [
+            "उदाहरण"
+          ]
+        },
+        "hindi_stemmer": {
+          "type": "stemmer",
+          "language": "hindi"
+        }
+      },
+      "analyzer": {
+        "hindi_indexer": {
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "indic_normalization",
+            "hindi_normalization",
+            "hindi_stop",
+            "hindi_keywords",
+            "hindi_stemmer"
+          ]
+        },
+        "hindi_stopper":{
+          "tokenizer": "standard",
+          "filter": [
+            "hindi_stop"
+          ]
+        }
+      } 
+    }
+  },
+  
+    "mappings": {
+    
+    "article": { 
+      "_all":       { "enabled": false  }, 
+      "properties": { 
+        "content":    { "type": "text"  }, 
+        "tags":     { "type": "text"  }, 
+        "authors":      { "type": "text" },
+        "movie_name": { "type": "text" },
+        "book_name" : { "type": "text" }
+      }
+    }
+    
+  }
+  
+}
+
+*************************************************************************************
+alias_v1
+
+POST /_aliases
+{
+    "actions" : [
+        { "add" : { "index" : "article_index", "alias" : "alias_ai" } }
+    ]
+}
+
+*************************************************************************************
+index_v3
+PUT /article_index
+{
+  "settings": {
+    "analysis": {
+      "filter": {
+        "hindi_stop": {
+          "type": "stop",
+          "stopwords": "_hindi_"
+        },
+        "hindi_keywords": {
+          "type": "keyword_marker",
+          "keywords": [
+            "उदाहरण"
+          ]
+        },
+        "hindi_stemmer": {
+          "type": "stemmer",
+          "language": "hindi"
+        }
+      },
+      "analyzer": {
+        "hindi_indexer": {
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "indic_normalization",
+            "hindi_normalization",
+            "hindi_stop",
+            "hindi_keywords",
+            "hindi_stemmer"
+          ]
+        },
+        "hindi_stopper":{
+          "tokenizer": "standard",
+          "filter": [
+            "hindi_stop"
+          ]
+        }
+      } 
+    }
+  },
+  
+    "mappings": {
+    
+    "article": { 
+      "_all":       { "enabled": false  }, 
+      "dynamic_templates": [
+        {
+          "lines_as_string": {
+             "match_pattern": "regex",
+             "match": "^content_line_\\d+$",
+             "mapping": {
+                "type": "text"
+             }
+          }
+        }
+      ],
+      "properties": { 
+        "tags":     { "type": "text"  }, 
+        "authors":      { "type": "text" },
+        "movie_name": { "type": "text" },
+        "book_name" : { "type": "text" }
+      }
+    }
+    
+  }
+  
+}
+
+*******************************************
+search_v2
+GET /article_index/_search
+{
+  "query": {
+    "multi_match": {
+      "query": "दौलत",
+      "fields": ["content_line_*"]
+    }
+  },
+  "highlight" : {
+        "fields" : {
+            "content_line_*" : {}
+        }
+    }
+}
+
+
