@@ -3,6 +3,7 @@ require_once '../configs/config.php';
 require_once 'es.php';
 require_once 'utils.php';
 require_once 'Curl.php';
+require_once 'redis.php';
 
 if( empty($_REQUEST) ){
     ?>
@@ -110,17 +111,127 @@ function getStrongWords( $str ){
 $response = searchIndex($current_text);
 
 if( !empty($response) ) {
+    $keywordsHashMap = [];
     $proximalCrudeWordsStr = "";
     $resObj = json_decode($response);
     $resArr = getResultArr( $resObj );
-    $neighLinesArr = getNeighbourLines($resArr);
+/*    $neighLinesArr = getNeighbourLines($resArr);
     if( !empty($neighLinesArr) ){
         $proximalCrudeWordsStr = implode(',', $neighLinesArr);
     }
     $strongWordsJson = getStrongWords( $proximalCrudeWordsStr );
-    $strongWordsArr = json_decode($strongWordsJson);
-    $topXStrongWords = getTopStrongWords( $strongWordsArr->tokens, 5 );
+    $strongWordsArr = json_decode($strongWordsJson);*/
+
+    getDataForHash( $resArr );
+    var_dump( $keywordsHashMap );
+    createZSet( $keywordsHashMap  );
+    $topXStrongWords = getTopStrongWords( 5 );
     var_dump( $topXStrongWords );
+}
+
+function createZSet( $map ){
+    $redis = getRedisConnection();
+    $zAddArr = [];
+    $zAddArr[] = 'hashmap';
+    foreach ( $map as $k => $valArr ){
+        $zAddArr[] = $valArr['cnt'];
+        $zAddArr[] = json_encode( $valArr['info'] );
+    }
+
+    call_user_func_array( array( $redis, 'zAdd'), $zAddArr);
+}
+
+
+function getSelfIndexesForMatches( $matches ){
+    $res = [];
+    foreach ( $matches as $k => $val ){
+        $res[] = getIndexForCurrentLine( $val );
+    }
+    return $res;
+}
+
+function insertNeighbourKeywordsForMatch( $src, $field, $val ){
+    $matchInx = getIndexForCurrentLine( $field );
+
+}
+
+function getFieldFromIndex( $inx, $offset ){
+    global $artFieldPrefix;
+    return $artFieldPrefix.( string )($inx + $offset);
+}
+
+function getKeywordsFromString( $str ){
+    //@todo apply stopwords
+    return explode(' ', $str );
+}
+
+//field can be prev or next
+//keyword['info']
+//keyword['cnt']
+function insertFieldKeywords( $docObj, $field, $currentFieldValue, $currentIsNext ){
+    global $prevNextLineSeparator, $keywordsHashMap;
+    $src = getSourceFromHitObj($docObj);
+    $docId = $docObj->_id;
+    if( isset( $src->{$field} ) ){
+        $keyArr = getKeywordsFromString( $src->{$field} );
+        foreach ( $keyArr as $k => $val ){
+            $str = $currentIsNext == true ? $val.$prevNextLineSeparator.$currentFieldValue : $currentFieldValue.$prevNextLineSeparator.$val;
+            $temp = [];
+            $temp['docId'] = $docId;
+            $temp['str'] = $str;
+            if( isset($keywordsHashMap[$val] ) ){
+                $keywordsHashMap[$val]['info'][] = $temp;
+                ++$keywordsHashMap[$val]['cnt'];
+            } else {
+                $keywordsHashMap[$val]['info'] = [];
+                $keywordsHashMap[$val]['info'][] = $temp;
+                $keywordsHashMap[$val]['cnt'] = 1;
+            }
+        }
+    }
+}
+
+function insertNeighbourKeywords( $docObj, $matches ){
+    //$matchesIndexes = getSelfIndexesForMatches( $matches );
+    foreach ( $matches as $field => $val ){
+        //insertNeighbourKeywordsForMatch( $src, $field, $val);
+        // in single line multiple words can match resulting in $val as array
+        // using $val[0], as we need just to display it
+        if( is_array($val) ){
+            $val = $val[0];
+        }
+        $matchInx = getIndexForCurrentLine( $field );
+        
+        $prevField = getFieldFromIndex($matchInx, -1);
+        insertFieldKeywords( $docObj, $prevField, $val, true );
+
+        $nextField = getFieldFromIndex($matchInx, 1);
+
+        insertFieldKeywords( $docObj, $nextField, $val, false );
+    }
+}
+
+/*function getProximalKeywords( $src, $matches ){
+    //get self index for matches
+
+    //if neighbours index not in matches, get insert its keywords into hash
+    insertNeighbourKeywords( $src, $matches );
+
+}*/
+
+function getDataForHash( $arr ){
+    $res = [];
+    foreach ( $arr as $k => $docObj ){
+        //$src = getSourceFromHitObj( $docObj );
+        $highlightObj = getHightLightObj( $docObj );
+        $matches = get_object_vars( $highlightObj );
+        /*$proximalLines = getProximalLines( $src, $matches );
+        $proxStr = getProximalString($proximalLines);*/
+        insertNeighbourKeywords( $docObj, $matches );
+        //$res[] = $proxStr;
+    }
+    return $res;
+
 }
 
 function usort_callback($a, $b)
@@ -131,20 +242,11 @@ function usort_callback($a, $b)
     return ( $a['cnt'] > $b['cnt'] ) ? -1 : 1;
 }
 
-function getTopStrongWords( $arr, $limit ){
-    $hashMap = [];
-    foreach( $arr as $k => $tokenObj ){
-        if( empty( $hashMap[$tokenObj->token]['cnt'] ) ){
-            $hashMap[$tokenObj->token]['cnt'] = 1;
-            $hashMap[$tokenObj->token]['token'] = $tokenObj->token;
-        } else {
-            ++$hashMap[$tokenObj->token]['cnt'];
-        }
-    }
-
-    usort($hashMap, 'usort_callback');
-    $topX = array_slice($hashMap, 0, $limit);
-    return $topX;
+function getTopStrongWords( $x ){
+    global $keywordsHashMap;
+    $redis = getRedisConnection();
+    $arr = $redis->zRangeByScore('hashmap', 0, $x, array('withscores' => TRUE, 'limit' => array(1, $x)) );
+    return $arr;
 }
 
 function getResultArr( $obj ){
@@ -163,13 +265,19 @@ function getHightLightObj( $obj ){
     return $obj->highlight;
 }
 
+function getIndexForCurrentLine( $str ){
+    global $artFieldPrefix;
+    $temp = explode($artFieldPrefix, $str );
+    $inx = (int)$temp[1];
+    return $inx;
+}
+
 function getIndexForProximalLines( $arr ){
     global $artFieldPrefix;
     $res = [];
     foreach ( $arr as $k => $val ){
         if( strstr($k, $artFieldPrefix) != false ){
-            $temp = explode($artFieldPrefix, $k);
-            $inx = (int)$temp[1];
+            $inx = getIndexForCurrentLine( $k );
             $res[$inx-1] = $artFieldPrefix.( string )($inx-1);
             $res[$inx+1] = $artFieldPrefix.( string )($inx+1);
         }
@@ -177,15 +285,16 @@ function getIndexForProximalLines( $arr ){
     return $res;
 }
 
-function getProximalLines( $src, $matches ){
+function getProximalLines( $src, $matches, $curMatchInx ){
+    global $keywordsHashMap;
     $proxArr = getIndexForProximalLines( $matches );
-    $res = [];
     foreach ( $proxArr as $k => $lineInx ){
+        //@todo proxarr index should not be in current line or $matches indexes
+        // probably its ok to use it
         if( isset( $src->{$lineInx} ) ){
             $res[$lineInx] = $src->{$lineInx};
         }
     }
-    return $res;
 }
 
 function getProximalString($proximalLines){
