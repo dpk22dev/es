@@ -4,36 +4,12 @@ require_once 'es.php';
 require_once 'utils.php';
 require_once 'Curl.php';
 require_once 'redis.php';
+require_once 'Params.php';
+require_once 'Views/suggestorView.php';
 
-if( empty($_REQUEST) ){
-    ?>
-    <style>
-        tbody {
-            display: table-row-group;
-            vertical-align: middle;
-            border-color: inherit;
-        }
-        tr {
-            display: table-row;
-            vertical-align: inherit;
-            border-color: inherit;
-        }
 
-    </style>
-    <form method="post" action="/Suggestor.php">
-        <table>
-            <tbody>
-            <tr>
-                <td>words:</td>
-                <td><input type="text" name="current_text" id="current_text"></td>
-            </tr>
-            <tr><td>
-                    <input type="submit">
-                </td></tr>
-            </tbody>
-        </table>
-    </form>
-    <?php
+if( empty($_POST) ){
+    showSuggestorForm();
     die();
 }
 
@@ -123,16 +99,24 @@ if( !empty($response) ) {
     $strongWordsArr = json_decode($strongWordsJson);*/
 
     getDataForHash( $resArr );
-    var_dump( $keywordsHashMap );
+    //var_dump( $keywordsHashMap );
     createZSet( $keywordsHashMap  );
-    $topXStrongWords = getTopStrongWords( 5 );
-    var_dump( $topXStrongWords );
+    $topXStrongWordsArr = getTopStrongWordsArr( 5 );
+    var_dump( $topXStrongWordsArr );
+}
+
+
+function getHashMapName(){
+    //@todo retun name with userid, artid init
+    $userId = getuserId();
+    $artId = getArtId();
+    return 'hashmap_'.$userId.'_'.$artId;
 }
 
 function createZSet( $map ){
     $redis = getRedisConnection();
     $zAddArr = [];
-    $zAddArr[] = 'hashmap';
+    $zAddArr[] = getHashMapName();
     foreach ( $map as $k => $valArr ){
         $zAddArr[] = $valArr['cnt'];
         $zAddArr[] = json_encode( $valArr['info'] );
@@ -242,10 +226,9 @@ function usort_callback($a, $b)
     return ( $a['cnt'] > $b['cnt'] ) ? -1 : 1;
 }
 
-function getTopStrongWords( $x ){
-    global $keywordsHashMap;
+function getTopStrongWordsArr( $x ){
     $redis = getRedisConnection();
-    $arr = $redis->zRangeByScore('hashmap', 0, $x, array('withscores' => TRUE, 'limit' => array(1, $x)) );
+    $arr = $redis->zRevRange( getHashMapName(), 0, $x, true );
     return $arr;
 }
 
