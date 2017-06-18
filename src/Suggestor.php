@@ -63,8 +63,13 @@ function searchIndex( $current_text )
 ';
 
     global $eSHosts, $eSArticleIndex;
-    $url = 'http://'.$eSHosts[0].'/'.$eSArticleIndex['index'].'/_search';
-    $response = curl_post($url, $searchJson );
+    try {
+        $url = 'http://' . $eSHosts[0] . '/' . $eSArticleIndex['index'] . '/_search';
+        $response = curl_post($url, $searchJson);
+    }catch ( Exception $e ){
+        $e->getMessage();
+        showSuggestorForm();
+    }
     return $response;
 }
 
@@ -110,7 +115,8 @@ function getHashMapName(){
     //@todo retun name with userid, artid init
     $userId = getuserId();
     $artId = getArtId();
-    return 'hashmap_'.$userId.'_'.$artId;
+    $lineNum = getStringFromPostById( 'lineNum' );
+    return 'hashmap_'.$userId.'_'.$artId.'_'.$lineNum;
 }
 
 function createZSet( $map ){
@@ -119,7 +125,8 @@ function createZSet( $map ){
     $zAddArr[] = getHashMapName();
     foreach ( $map as $k => $valArr ){
         $zAddArr[] = $valArr['cnt'];
-        $zAddArr[] = json_encode( $valArr['info'] );
+        $valArr['word'] = $k;
+        $zAddArr[] = json_encode( $valArr );
     }
 
     call_user_func_array( array( $redis, 'zAdd'), $zAddArr);

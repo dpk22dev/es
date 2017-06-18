@@ -45,15 +45,15 @@ $params = [
     'index' => $eSArticleIndex['index'],
     'type' => $eSArticleIndex['type'],
     'body' => [
-        $contentArr,
         'categories' => $catArr,
         'language' => $lang,
         'tags' => $tagsArr,
         'writer' => $writer,
         'song' => [ "movie_name" => $movie_name ],
         'book' => [ "name" => $book_name ]
-    ]
+    ] + $contentArr
 ];
+
 
 try{
     $response = $eSClient->index($params);
