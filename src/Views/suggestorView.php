@@ -3,7 +3,7 @@ function showSuggestorForm()
 {
     $userId = 1;
     $artId = 1;
-    $text = 'मोहब्बत';
+    $text = 'दिल';
     $lineNum = 1;
     
     if (empty($_REQUEST)) {

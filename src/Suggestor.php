@@ -6,7 +6,7 @@ require_once 'Curl.php';
 require_once 'redis.php';
 require_once 'Params.php';
 require_once 'Views/suggestorView.php';
-
+require_once 'stopwords.php';
 
 if( empty($_POST) ){
     showSuggestorForm();
@@ -106,10 +106,18 @@ if( !empty($response) ) {
     getDataForHash( $resArr );
     //var_dump( $keywordsHashMap );
     createZSet( $keywordsHashMap  );
-    $topXStrongWordsArr = getTopStrongWordsArr( 5 );
+    $topXStrongWordsJsonArr = getTopStrongWordsArr( 5 );
+    $topXStrongWordsArr = getTopXStrongWordsArr( $topXStrongWordsJsonArr );
     var_dump( $topXStrongWordsArr );
 }
 
+function getTopXStrongWordsArr( $topXStrongWordsJsonArr ){
+    $res = [];
+    foreach ( $topXStrongWordsJsonArr as $content => $cnt ){
+        $res[] = json_decode($content);
+    }
+    return $res;
+}
 
 function getHashMapName(){
     //@todo retun name with userid, artid init
@@ -152,8 +160,11 @@ function getFieldFromIndex( $inx, $offset ){
 }
 
 function getKeywordsFromString( $str ){
-    //@todo apply stopwords
-    return explode(' ', $str );
+    global $stopWordsObj;
+    $inputArr = explode(' ', $str );
+    $stopWordsArr = $stopWordsObj->getStopWordsArr( 'hi' );
+    $res = array_diff($inputArr, $stopWordsArr );
+    return $res;
 }
 
 //field can be prev or next
@@ -210,8 +221,11 @@ function insertNeighbourKeywords( $docObj, $matches ){
 
 }*/
 
+
 function getDataForHash( $arr ){
     $res = [];
+    global $stopWordsObj;
+    $stopWordsObj = new Stopwords( );
     foreach ( $arr as $k => $docObj ){
         //$src = getSourceFromHitObj( $docObj );
         $highlightObj = getHightLightObj( $docObj );
