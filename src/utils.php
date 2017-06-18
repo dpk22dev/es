@@ -2,11 +2,13 @@
 include_once '../configs/config.php';
 
 function getStringFromPostById( $id ){
-    return !empty( $_POST[ $id ] ) ? $_POST[ $id ] : "";
+    $val = trim( $_POST[ $id ] );
+    return !empty( $val ) ? $val : "";
 }
 
 function getStringFromRequestById( $id ){
-    return !empty( $_REQUEST[ $id ] ) ? $_REQUEST[ $id ] : "";
+    $val = trim( $_POST[ $id ] );
+    return !empty( $val ) ? $val : "";
 }
 
 function getContentLines( $content ){
@@ -14,8 +16,16 @@ function getContentLines( $content ){
     $cntArr = explode( PHP_EOL, $content);
     $temp = [];
     foreach ( $cntArr as $k => $val ){
-        $temp[ $artFieldPrefix.$k ] = $val;
+        $trimVal = trim( $val );
+        if( !empty($trimVal) ) {
+            $temp[$artFieldPrefix . $k] = $trimVal;
+        }
     }
 
     return $temp;
+}
+
+function getArrAfterExplode( $del, $str ){
+    if( empty($str) ) return [];
+    else return explode($del, $str);
 }

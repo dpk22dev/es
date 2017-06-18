@@ -18,16 +18,22 @@ $response = $eSClient->indices()->create($params);
 print_r($response);*/
 
 if( empty($_POST) ){
-    showInputForm();
+    $inputFormData =[];
+    showInputForm( $inputFormData );
     die();
 }
 
 //$id = getStringFromPostById( 'id' );
 $content = getStringFromPostById( 'content' );
+$cats = getStringFromPostById( 'categories' );
+$lang = getStringFromPostById( 'language' );
 $tags = getStringFromPostById( 'tags' );
-$authors = getStringFromPostById( 'authors' );
+$writer = getStringFromPostById( 'writer' );
 $movie_name = getStringFromPostById( 'movie_name' );
 $book_name = getStringFromPostById( 'book_name' );
+
+$tagsArr = getArrAfterExplode( ',', $tags );
+$catArr =  getArrAfterExplode( ',', $cats );
 
 if( empty($content) ){
     die('empty content');
@@ -40,10 +46,12 @@ $params = [
     'type' => $eSArticleIndex['type'],
     'body' => [
         $contentArr,
-        'tags' => $tags,
-        'author' => $authors,
-        'movie_name' => $movie_name,
-        'book_name' => $book_name
+        'categories' => $catArr,
+        'language' => $lang,
+        'tags' => $tagsArr,
+        'writer' => $writer,
+        'song' => [ "movie_name" => $movie_name ],
+        'book' => [ "name" => $book_name ]
     ]
 ];
 
@@ -51,6 +59,8 @@ try{
     $response = $eSClient->index($params);
 } catch ( \Exception $e ){
     print_r( $e->getMessage() );
+    showInputForm( $_POST );
+    die();
 }
 
 print_r($response);

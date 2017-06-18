@@ -275,4 +275,94 @@ GET /article_index/_search
     }
 }
 
+********************************************
+index_v4
 
+PUT /article_index
+{
+  "settings": {
+    "analysis": {
+      "filter": {
+        "hindi_stop": {
+          "type": "stop",
+          "stopwords": "_hindi_"
+        },
+        "hindi_keywords": {
+          "type": "keyword_marker",
+          "keywords": [
+            "उदाहरण"
+          ]
+        },
+        "hindi_stemmer": {
+          "type": "stemmer",
+          "language": "hindi"
+        }
+      },
+      "analyzer": {
+        "hindi_indexer": {
+          "tokenizer": "standard",
+          "filter": [
+            "lowercase",
+            "indic_normalization",
+            "hindi_normalization",
+            "hindi_stop",
+            "hindi_keywords",
+            "hindi_stemmer"
+          ]
+        },
+        "hindi_stopper":{
+          "tokenizer": "standard",
+          "filter": [
+            "hindi_stop"
+          ]
+        }
+      }
+    }
+  },
+
+    "mappings": {
+
+    "article": {
+      "_all":       { "enabled": false  },
+      "dynamic_templates": [
+        {
+          "lines_as_string": {
+             "match_pattern": "regex",
+             "match": "^content_line_\\d+$",
+             "mapping": {
+                "type": "text"
+             }
+          }
+        }
+      ],
+      "properties": {
+        "categories":  { "type": "keyword"  },
+        "language" : { "type": "keyword" },
+        "book" : {
+            "type" : "nested",
+            "properties" : {
+                "name": { "type": "text"  },
+                "publish_date" : { "type": "date"  },
+                "author" : { "type": "text"  },
+                "author_url" : { "type": "keyword"  },
+                "book_puchase_url" : { "type": "keyword"  }
+            }
+        },
+        "song" : {
+            "type" : "nested",
+            "properties" : {
+                "movie_name": { "type": "text"  },
+                "release_date" : { "type": "date"  },
+                "singers" : { "type": "text"  },
+                "composers" : { "type": "text"  },
+                "song_purchase_url" : { "type": "keyword"  }
+            }
+        },
+        "tags":     { "type": "keyword"  },
+        "writer": { "type": "text" }
+      }
+    }
+
+  }
+
+}

@@ -1,5 +1,6 @@
 <?php
-function showInputForm(){
+function showInputForm( $arr ){
+
 ?>
 <style>
     tbody {
@@ -19,23 +20,31 @@ function showInputForm(){
         <tbody>
         <tr>
             <td>content:</td>
-            <td><textarea type="text" id="content" name="content" rows="5" cols="50"></textarea></td>
+            <td><textarea type="text" id="content" name="content" rows="5" cols="50"><?php echo $arr['content']; ?></textarea></td>
+        </tr>
+        <tr>
+            <td>categories:</td>
+            <td><input type="text" name="categories" value="<?php echo $arr['categories']; ?>"></td>
+        </tr>
+        <tr>
+            <td>language:</td>
+            <td><input type="text" name="language" value="<?php echo $arr['language']; ?>"></td>
         </tr>
         <tr>
             <td>tags:</td>
-            <td><input type="text" name="tags"></td>
+            <td><input type="text" name="tags" value="<?php echo $arr['tags']; ?>"></td>
         </tr>
         <tr>
-            <td>authors:</td>
-            <td><input type="text" name="authors"></td>
+            <td>writer:</td>
+            <td><input type="text" name="writer" value="<?php echo $arr['writer']; ?>" ></td>
         </tr>
         <tr>
             <td>movie_name:</td>
-            <td><input type="text" name="movie_name"></td>
+            <td><input type="text" name="movie_name" value=" <?php echo $arr['movie_name']; ?>" ></td>
         </tr>
         <tr>
             <td>book_name:</td>
-            <td><input type="text" name="book_name"></td>
+            <td><input type="text" name="book_name" value="<?php echo $arr['book_name']; ?>"></td>
         </tr>
         <tr><td>
                 <input type="submit">

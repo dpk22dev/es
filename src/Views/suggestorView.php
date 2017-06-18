@@ -4,7 +4,8 @@ function showSuggestorForm()
     $userId = 1;
     $artId = 1;
     $text = 'दौलत';
-
+    $lineNum = 1;
+    
     if (empty($_REQUEST)) {
         ?>
         <style>
