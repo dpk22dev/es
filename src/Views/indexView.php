@@ -15,12 +15,16 @@ function showInputForm( $arr ){
     }
 
 </style>
+
+<script src="<?php echo getJsDirPath().'/jquery.js'; ?>" ></script>
+<script src="<?php echo getJsDirPath().'/logic.js'; ?>" ></script>
+
 <form method="post" action="/index.php">
     <table>
         <tbody>
         <tr>
             <td>content:</td>
-            <td><textarea type="text" id="content" name="content" rows="5" cols="50"><?php echo $arr['content']; ?></textarea></td>
+            <td><textarea type="text" id="content" name="content" rows="10" cols="40" onkeyup="getStrongWords(this);" ><?php echo $arr['content']; ?></textarea></td>
         </tr>
         <tr>
             <td>categories:</td>
