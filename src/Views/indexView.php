@@ -56,5 +56,8 @@ function showInputForm( $arr ){
         </tbody>
     </table>
 </form>
+<div id="strongWordDiv" class="strongWordDiv"></div>
+<div id="swDocListDiv" class="swDocListDiv"></div>
+<div id="swDocDiv" class="swDocDiv"></div>
 <?php
 }
