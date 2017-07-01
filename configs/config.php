@@ -33,3 +33,13 @@ $mongoConfigs = [
     "db" => 'aston',
     "collection" => 'articles'
 ];
+
+$loggerConfigs = [
+    "fileLogger" => array(
+        "name" => "es-logging",
+        "pathDebug" => "/var/log/es.debug",
+        "pathWarning" => "/var/log/es.warning",
+        "pathCritical" => "/var/log/es.critical",
+        "minLevel" => 100
+    ),
+];

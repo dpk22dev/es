@@ -22,6 +22,7 @@ class ComposerStaticInit2324ca3d7ba1437b36c46cc141f3ffe3
         ),
         'M' => 
         array (
+            'Monolog\\' => 8,
             'MongoDB\\' => 8,
         ),
         'G' => 
@@ -43,6 +44,10 @@ class ComposerStaticInit2324ca3d7ba1437b36c46cc141f3ffe3
         'Psr\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
+        ),
+        'Monolog\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/monolog/monolog/src/Monolog',
         ),
         'MongoDB\\' => 
         array (

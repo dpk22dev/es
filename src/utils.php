@@ -62,3 +62,37 @@ function getArrAfterExplode( $del, $str ){
     if( empty($str) ) return [];
     else return explode($del, $str);
 }
+
+class Utils{
+
+    public function __construct(){
+
+    }
+
+    public static function getArtId( $mId ){
+        return $mId;
+    }
+
+    public static function getMongoDocId( $artId ){
+        return $artId;
+    }
+
+    public static function getUserId( ){
+        return 1;
+    }
+
+
+    //use: www.google.com
+    public static function getRootDomain($domain)
+    {
+        if( empty($domain) ){
+            $domain = $_SERVER['HTTP_HOST'];
+        }
+
+        if (preg_match('/(?P<domain>[a-z0-9][a-z0-9\-]{1,63}\.[a-z\.]{2,6})$/i', $domain, $regs)) {
+            return $regs['domain'];
+        }
+        return false;
+    }
+
+}

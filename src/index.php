@@ -4,6 +4,7 @@ require_once 'es.php';
 require_once 'utils.php';
 require_once 'Views/indexView.php';
 require_once 'MongoService.php';
+require_once 'Logger.php';
 
 /*$params = [
     'index' => 'my_index',
@@ -18,8 +19,19 @@ require_once 'MongoService.php';
 $response = $eSClient->indices()->create($params);
 print_r($response);*/
 
+$logger = FileLogger::getLogger( $loggerConfigs );
+$mongoSrv = new MongoService($mongoConfigs, $logger );
+
 if( empty($_POST) ){
     $inputFormData =[];
+
+    $doc['uId'] = Utils::getUserId();
+    $mId = $mongoSrv->createEmptyMongoDoc( $doc );
+    if( $mId == -1 ){
+        die('error in creating doc in M');
+    }
+    $artId = Utils::getArtId($mId);
+    $inputFormData['artId'] = $artId;
     showInputForm( $inputFormData );
     die();
 }
@@ -32,6 +44,8 @@ $tags = getStringFromPostById( 'tags' );
 $writer = getStringFromPostById( 'writer' );
 $movie_name = getStringFromPostById( 'movie_name' );
 $book_name = getStringFromPostById( 'book_name' );
+$uId = getStringFromPostById( 'uId' );
+$artId = getStringFromPostById( 'artId' );
 
 $tagsArr = getArrAfterExplode( ',', $tags );
 $catArr =  getArrAfterExplode( ',', $cats );
@@ -55,17 +69,35 @@ $params = [
     ] + $contentArr
 ];
 
-function insertIntoMongo( $mongoArt ){
-    global $mongoConfigs;
-    $mongoSrv = new MongoService($mongoConfigs);
+/*function insertIntoMongo( $mongoArt ){
+    global $mongoSrv;
+    //$mongoSrv = new MongoService($mongoConfigs);
+
     $mongoObj = $mongoSrv->insertArticle( $mongoArt );
     var_dump($mongoObj);
 
     if( $mongoObj->isAcknowledged() ){
-        return $mongoObj->getInsertedId()->oid;
+        $x = $mongoObj->getInsertedId();
+        return $x->oid;
     } else {
         return -1;
     }
+}*/
+
+function saveArticleInMongo( $mDocIdArr, $mongoArt ){
+    global $mongoSrv;
+    //$mongoSrv = new MongoService($mongoConfigs);
+
+    $mongoObj = $mongoSrv->saveArticleInMongo( $mDocIdArr, $mongoArt );
+    //@todo here upserted doc ids are not returned, should be better returned 
+    //$id = $mongoObj['value']['_id'];
+/*    $x = $mongoObj->getModifiedCount();
+    $y = $mongoObj->getInsertedCount();
+    if( $mongoObj->getModifiedCount() > 0 ){
+        return true;
+    } else {
+        return false;
+    }*/
 }
 
 $mongoArt = [
@@ -75,10 +107,12 @@ $mongoArt = [
     'writer' => $writer,
     'song' => [ "movie_name" => $movie_name ],
     'book' => [ "name" => $book_name ],
-    'content' => $content
+    'content' => $content,
+    '_id' => new \MongoDB\BSON\ObjectID( $docId ),
+    'uId' => $uId
 ];
 
-$mongoObjId = insertIntoMongo( $mongoArt );
+$mongoObjId = saveArticleInMongo( [ '_id' => $mongoArt['_id'] ], [ '$set' => $mongoArt ] );
 
 try{
     $response = $eSClient->index($params);
@@ -88,12 +122,9 @@ try{
     die();
 }
 
-if( $mongoObjId > 0 ) {
-    global $mongoConfigs;
-    $mongoSrv = new MongoService($mongoConfigs);
+//if( $mongoObjId > 0 ) {
     $mongoObj = $mongoSrv->updateMongoArticleWithEsId($mongoObjId, $response['_id']);
-}
+//}
 
-print_r($response);
 die('done');
 

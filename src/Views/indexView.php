@@ -17,11 +17,21 @@ function showInputForm( $arr ){
 </style>
 
 <script src="<?php echo getJsDirPath().'/jquery.js'; ?>" ></script>
-<script src="<?php echo getJsDirPath().'/logic.js'; ?>" ></script>
+<script>
+    <?php
+    $uId = Utils::getUserId();
+    $domain = Utils::getRootDomain( );
+
+    echo 'var uId = '.$uId.';';
+    echo 'var domain = '.$domain.';';
+    ?>
+</script>
 <div>
     <span class="message"></span>
 </div>
 <form method="post" action="/index.php">
+    <input type="hidden" name="artId" value="<?php echo $arr['artId']; ?>" readonly>
+    <input type="hidden" name="uId" value="<?php echo $uId; ?>" readonly>
     <table>
         <tbody>
         <tr>
@@ -66,5 +76,6 @@ function showInputForm( $arr ){
 <div id="docsForVerify">
 
 </div>
+<script src="<?php echo getJsDirPath().'/logic.js'; ?>" ></script>
 <?php
 }

@@ -1,11 +1,11 @@
 <?php
-function showSuggestorForm()
+function showSuggestorForm( $arr )
 {
     $userId = 1;
     $artId = 1;
     $text = 'दिल';
     $lineNum = 1;
-    
+
     if (empty($_REQUEST)) {
         ?>
         <style>
@@ -22,7 +22,18 @@ function showSuggestorForm()
             }
 
         </style>
+        <script>
+            <?php
+            $uId = Utils::getUserId();
+            $domain = Utils::getRootDomain();
+
+            echo 'var uId = '.$uId.';';
+            echo 'var domain = '.$domain.';';
+            ?>
+        </script>
         <form method="post" action="/Suggestor.php">
+            <input type="hidden" name="artId" value="<?php echo $arr['artId']; ?>" readonly>
+            <input type="hidden" name="uId" value="<?php echo $uId; ?>" readonly>
             <table>
                 <tbody>
                 <tr>
