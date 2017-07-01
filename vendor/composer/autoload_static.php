@@ -8,6 +8,7 @@ class ComposerStaticInit2324ca3d7ba1437b36c46cc141f3ffe3
 {
     public static $files = array (
         'ad155f8f1cf0d418fe49e248db8c661b' => __DIR__ . '/..' . '/react/promise/src/functions_include.php',
+        '3a37ebac017bc098e9a86b35401e7a68' => __DIR__ . '/..' . '/mongodb/mongodb/src/functions.php',
     );
 
     public static $prefixLengthsPsr4 = array (
@@ -18,6 +19,10 @@ class ComposerStaticInit2324ca3d7ba1437b36c46cc141f3ffe3
         'P' => 
         array (
             'Psr\\Log\\' => 8,
+        ),
+        'M' => 
+        array (
+            'MongoDB\\' => 8,
         ),
         'G' => 
         array (
@@ -38,6 +43,10 @@ class ComposerStaticInit2324ca3d7ba1437b36c46cc141f3ffe3
         'Psr\\Log\\' => 
         array (
             0 => __DIR__ . '/..' . '/psr/log/Psr/Log',
+        ),
+        'MongoDB\\' => 
+        array (
+            0 => __DIR__ . '/..' . '/mongodb/mongodb/src',
         ),
         'GuzzleHttp\\Stream\\' => 
         array (

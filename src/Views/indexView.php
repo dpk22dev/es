@@ -18,7 +18,9 @@ function showInputForm( $arr ){
 
 <script src="<?php echo getJsDirPath().'/jquery.js'; ?>" ></script>
 <script src="<?php echo getJsDirPath().'/logic.js'; ?>" ></script>
-
+<div>
+    <span class="message"></span>
+</div>
 <form method="post" action="/index.php">
     <table>
         <tbody>
@@ -50,14 +52,19 @@ function showInputForm( $arr ){
             <td>book_name:</td>
             <td><input type="text" name="book_name" value="<?php echo $arr['book_name']; ?>"></td>
         </tr>
-        <tr><td>
-                <input type="submit">
-            </td></tr>
+        <tr>
+            <td><input type="submit"></td>
+            <td><input type="button" id="verifyBtn" onclick="checkIfDocExists()" value="check if doc already exists"></td>
+        </tr>
         </tbody>
     </table>
 </form>
 <div id="strongWordDiv" class="strongWordDiv"></div>
 <div id="swDocListDiv" class="swDocListDiv"></div>
 <div id="swDocDiv" class="swDocDiv"></div>
+
+<div id="docsForVerify">
+
+</div>
 <?php
 }

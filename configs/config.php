@@ -1,4 +1,8 @@
 <?php
+$rootPath = $_SERVER['DOCUMENT_ROOT'] . '/../';
+
+$project = "kavitarth";
+
 $eSArticleIndex = [
     'index' => 'article_index',
     'type' => 'article',
@@ -17,3 +21,15 @@ $redisConfigs = [
 ];
 
 $prevNextLineSeparator = 'qqqqqqqqqqq';
+
+function getRootPath(){
+    global $rootPath;
+    return $rootPath;
+}
+
+$mongoConfigs = [
+    "host" => '127.0.0.1',
+    "port" => '27017',
+    "db" => 'aston',
+    "collection" => 'articles'
+];

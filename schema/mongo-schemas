@@ -1,0 +1,2 @@
+db.createCollection("articles", { capped : true, autoIndexId : true, size :
+   6142800, max : 10000 } )

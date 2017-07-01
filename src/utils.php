@@ -1,11 +1,6 @@
 <?php
 include_once '../configs/config.php';
 
-function getRootPath(){
-    global $rootPath;
-    return $rootPath;
-}
-
 function getConfigsDirPath( ){
     return getRootPath() . '/configs';
 }

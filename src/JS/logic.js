@@ -193,3 +193,22 @@ function showDocsListForStrongWord( data ) {
     }
 
 }
+
+function appendToDocsToVerfiyList( data ) {
+    
+}
+
+function checkIfDocExists( ) {
+
+    var artText = $('textarea#content').val();
+    var jqxhr = $.post("/Article.php", { docText : artText }, function () { })
+        .done(function (data) {
+            console.log( data );
+            appendToDocsToVerfiyList( data );
+        })
+        .fail(function () {
+            console.log('failed to retrieve document at this moment');
+        })
+
+
+}

@@ -3,6 +3,7 @@ require_once '../configs/config.php';
 require_once 'es.php';
 require_once 'utils.php';
 require_once 'Views/indexView.php';
+require_once 'MongoService.php';
 
 /*$params = [
     'index' => 'my_index',
@@ -54,6 +55,30 @@ $params = [
     ] + $contentArr
 ];
 
+function insertIntoMongo( $mongoArt ){
+    global $mongoConfigs;
+    $mongoSrv = new MongoService($mongoConfigs);
+    $mongoObj = $mongoSrv->insertArticle( $mongoArt );
+    var_dump($mongoObj);
+
+    if( $mongoObj->isAcknowledged() ){
+        return $mongoObj->getInsertedId()->oid;
+    } else {
+        return -1;
+    }
+}
+
+$mongoArt = [
+    "categories" => $catArr,
+    "language" => $lang,
+    "tags" => $tagsArr,
+    'writer' => $writer,
+    'song' => [ "movie_name" => $movie_name ],
+    'book' => [ "name" => $book_name ],
+    'content' => $content
+];
+
+$mongoObjId = insertIntoMongo( $mongoArt );
 
 try{
     $response = $eSClient->index($params);
@@ -61,6 +86,12 @@ try{
     print_r( $e->getMessage() );
     showInputForm( $_POST );
     die();
+}
+
+if( $mongoObjId > 0 ) {
+    global $mongoConfigs;
+    $mongoSrv = new MongoService($mongoConfigs);
+    $mongoObj = $mongoSrv->updateMongoArticleWithEsId($mongoObjId, $response['_id']);
 }
 
 print_r($response);
