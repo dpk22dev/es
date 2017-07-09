@@ -32,6 +32,8 @@ if( empty($_POST) ){
     }
     $artId = Utils::getArtId($mId);
     $inputFormData['artId'] = $artId;
+    $inputFormData ['uId'] = Utils::getUserId();
+    $inputFormData ['rootDomain'] = Utils::getRootDomain( );
     showInputForm( $inputFormData );
     die();
 }
@@ -69,6 +71,22 @@ $params = [
     ] + $contentArr
 ];
 
+
+$paramsForUpdate = [
+    'index' => $eSArticleIndex['index'],
+    'type' => $eSArticleIndex['type'],
+    'body' => [
+            'doc'=>[
+                'categories' => $catArr,
+                'language' => $lang,
+                'tags' => $tagsArr,
+                'writer' => $writer,
+                'song' => ["movie_name" => $movie_name],
+                'book' => ["name" => $book_name]
+            ] + $contentArr
+        ]
+];
+
 /*function insertIntoMongo( $mongoArt ){
     global $mongoSrv;
     //$mongoSrv = new MongoService($mongoConfigs);
@@ -100,6 +118,7 @@ function saveArticleInMongo( $mDocIdArr, $mongoArt ){
     }*/
 }
 
+$docId = Utils::getMongoDocId($artId);
 $mongoArt = [
     "categories" => $catArr,
     "language" => $lang,
@@ -112,18 +131,29 @@ $mongoArt = [
     'uId' => $uId
 ];
 
-$mongoObjId = saveArticleInMongo( [ '_id' => $mongoArt['_id'] ], [ '$set' => $mongoArt ] );
+$mongoObjId = saveArticleInMongo( [ '_id' => new \MongoDB\BSON\ObjectID( $docId ) ], [ '$set' => $mongoArt ] );
 
 try{
-    $response = $eSClient->index($params);
+    //get esid for docId
+    $esId = $mongoSrv->getEsId( $docId );
+    if( !empty($esId) ){
+        // if esid exists update in es
+        $paramsForUpdate['id'] = $esId;
+        $response = $eSClient->update($paramsForUpdate);
+        
+    } else {
+        $response = $eSClient->index($params);
+        $mongoObj = $mongoSrv->updateMongoArticleWithEsId( [ '_id' => new \MongoDB\BSON\ObjectID( $docId ) ] , $response['_id']);    
+    }
+    
 } catch ( \Exception $e ){
     print_r( $e->getMessage() );
-    showInputForm( $_POST );
+    showInputForm( $_POST );    
     die();
 }
 
 //if( $mongoObjId > 0 ) {
-    $mongoObj = $mongoSrv->updateMongoArticleWithEsId($mongoObjId, $response['_id']);
+    
 //}
 
 die('done');

@@ -34,7 +34,7 @@ class MongoService{
 
     public function updateMongoArticleWithEsId( $docId, $esId ){
 
-        return $this->mongoCol->updateOne( array( '_id'=>  new \MongoDB\BSON\ObjectID( $docId ) ),
+        return $this->mongoCol->updateOne( $docId,
             array('$set'=>array("esId"=> $esId )));
     }
 
@@ -53,7 +53,7 @@ class MongoService{
         ) );
         return $result;*/
 
-        $updateResult = $this->mongoCol->updateOne( $filter, $doc,  [ 'upsert' => true ] );
+        $updateResult = $this->mongoCol->updateOne( $filter, $doc,  [ 'upsert' => false ] );
         return $updateResult;
     }
 
@@ -78,5 +78,32 @@ class MongoService{
         }
     }
 
+    public function getMongoIdsForEsIds( $esIds ){
+        $res = [];
+        try {
+            $cursor = $this->mongoCol->find( [ 'esId' => [ '$in' => $esIds ] ] );
+            $iter = iterator_to_array($cursor);
+            foreach ( $iter as $k => $doc ){
+                $res[$doc['esId']] = $doc['_id'];
+            }
+        }catch ( Exception $e ){
+            $this->logger->critical( __FILE__.'['.__LINE__.']'.' failed to get mongo docids for esids.'.$e->getMessage() );
+            return [];
+        }
+
+        return $res;
+    }
+
+    public function getEsId( $docId ){
+        try {
+            $cursor = $this->mongoCol->findOne([ '_id'=>  new \MongoDB\BSON\ObjectID( $docId ) ], [ 'esId' => 1 ]);
+            $iter = iterator_to_array($cursor);
+            $esId = $iter['esId'];
+        }catch ( Exception $e ){
+            $this->logger->critical( __FILE__.'['.__LINE__.']'.' failed to get esid for mongo docid.'.$e->getMessage() );
+            return NULL;
+        }
+        return $esId;
+    }
 
 }

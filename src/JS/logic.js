@@ -1,9 +1,11 @@
 globalLastLine = '';
 globalStrongWordsArr = [];
+globalCloseDocsArr = [];
 globalStrongWordConfig = {
     strongWordDiv : "#strongWordDiv",
     strongWordDocListDiv : "#swDocListDiv",
-    strongWordDocDiv : "#swDocDiv"
+    strongWordDocDiv : "#swDocDiv",
+    closeDocDiv: '#docsForVerify'
 };
 
 function getStrongWords(textarea) {
@@ -88,7 +90,16 @@ function fetchStrongWordsDataFromLocalStorage( postData ) {
     return value;
 }
 
+function removeChildren( selector ){
+    $( selector).empty();
+}
+
 function showListOfKeywords( arr ){
+    
+    //clear earlier populated strongWord area, doc verify area
+    removeChildren('#swArea div');
+    removeChildren('#docVerifyArea div');
+
     var strongWordDiv = $( globalStrongWordConfig.strongWordDiv );
 
     $(strongWordDiv).empty();
@@ -139,6 +150,25 @@ $( document ).on( 'click', '#swDocListDiv .strongWordDoc', function ( e ) {
     var inx = $(this).attr('data-docIndex');
     fetchAndShowDoc( inx );
 });
+
+$( document ).on( 'click', '#docsForVerify .closeDocLink', function ( e ) {
+    var inx = $(this).attr('data-arrIndex');
+    insertInForm( inx );
+});
+
+function insertInForm( inx ) {
+    var doc = globalCloseDocsArr[inx];
+    $('#articleForm #artId').val( doc['artId'] );
+    $('#articleForm #uId').val( doc['uId'] );
+    $('#articleForm #content').val( doc['content'] );
+    $('#articleForm #categories').val( doc['categories'] );
+    $('#articleForm #language').val( doc['language'] );
+    $('#articleForm #tags').val( doc['tags'] );
+    $('#articleForm #writer').val( doc['writer'] );
+    $('#articleForm #movie_name').val( doc['movie_name'] );
+    $('#articleForm #book_name').val( doc['book_name'] );
+
+}
 
 function showDoc( data ) {
     var docDiv = $( globalStrongWordConfig.strongWordDocDiv );
@@ -194,8 +224,44 @@ function showDocsListForStrongWord( data ) {
 
 }
 
-function appendToDocsToVerfiyList( data ) {
-    
+function makeCloseDocsGlobal( closeDocs ) {
+    globalCloseDocsArr = closeDocs;
+}
+
+function appendToDocsToVerfiyList( closeDocs ) {
+    removeChildren('#swArea div');
+    removeChildren('#docVerifyArea div');
+
+    if( closeDocs.length > 0 ) {
+
+        makeCloseDocsGlobal(closeDocs);
+
+        var closeDocListDiv = $(globalStrongWordConfig.closeDocDiv);
+        closeDocListDiv.empty();
+
+        var docListUl = $('<ul/>');
+        $.each(closeDocs, function (i) {
+            var docObj = closeDocs[i];
+            var li = $('<li/>')
+                .addClass('closeDocLi')
+                .appendTo(docListUl);
+            var text = docObj.content;
+            var textarea = $('<textarea/>')
+                .addClass('closeDocText')
+                .text(text)
+                .appendTo(li)
+            var a = $('<button/>')
+                    .addClass('closeDocLink')
+                    .attr('data-arrIndex', i )
+                    .attr('data-docIndex', docObj.artId)
+                    .text('use me')
+                    .appendTo(li)
+                ;
+        });
+
+        $(closeDocListDiv).append(docListUl);
+    }
+
 }
 
 function checkIfDocExists( ) {

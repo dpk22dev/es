@@ -1,4 +1,7 @@
 <?php
+/*
+ * don't change any of vars without checking everywhere in project
+ */
 $rootPath = $_SERVER['DOCUMENT_ROOT'] . '/../';
 
 $project = "kavitarth";

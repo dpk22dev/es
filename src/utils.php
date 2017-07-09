@@ -95,4 +95,15 @@ class Utils{
         return false;
     }
 
+    public static function getContentLinesFromArr( $hit ){
+        global $artFieldPrefix;
+        $temp = [];
+        foreach ( $hit as $k => $val ){
+            if( strpos($k, $artFieldPrefix) !== FALSE ){
+                $temp[] = $val;
+            }
+        }
+        return implode( PHP_EOL, $temp );
+    }
+
 }

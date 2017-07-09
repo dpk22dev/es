@@ -19,19 +19,19 @@ function showInputForm( $arr ){
 <script src="<?php echo getJsDirPath().'/jquery.js'; ?>" ></script>
 <script>
     <?php
-    $uId = Utils::getUserId();
-    $domain = Utils::getRootDomain( );
+    $uId = $arr['uId']; Utils::getUserId();
+    $domain = $arr['rootDomain']; Utils::getRootDomain( );
 
-    echo 'var uId = '.$uId.';';
-    echo 'var domain = '.$domain.';';
+    echo 'var uId = "'.$uId.'";';
+    echo 'var domain = "'.$domain.'";';
     ?>
 </script>
 <div>
     <span class="message"></span>
 </div>
-<form method="post" action="/index.php">
-    <input type="hidden" name="artId" value="<?php echo $arr['artId']; ?>" readonly>
-    <input type="hidden" name="uId" value="<?php echo $uId; ?>" readonly>
+<form id='articleForm' method="post" action="/index.php">
+    <input type="hidden" id='artId' name="artId" value="<?php echo $arr['artId']; ?>" readonly>
+    <input type="hidden" id='uId' name="uId" value="<?php echo $uId; ?>" readonly>
     <table>
         <tbody>
         <tr>
@@ -40,27 +40,27 @@ function showInputForm( $arr ){
         </tr>
         <tr>
             <td>categories:</td>
-            <td><input type="text" name="categories" value="<?php echo $arr['categories']; ?>"></td>
+            <td><input type="text" id='categories' name="categories" value="<?php echo $arr['categories']; ?>"></td>
         </tr>
         <tr>
             <td>language:</td>
-            <td><input type="text" name="language" value="<?php echo $arr['language']; ?>"></td>
+            <td><input type="text" id='language' name="language" value="<?php echo $arr['language']; ?>"></td>
         </tr>
         <tr>
             <td>tags:</td>
-            <td><input type="text" name="tags" value="<?php echo $arr['tags']; ?>"></td>
+            <td><input type="text" id='tags' name="tags" value="<?php echo $arr['tags']; ?>"></td>
         </tr>
         <tr>
             <td>writer:</td>
-            <td><input type="text" name="writer" value="<?php echo $arr['writer']; ?>" ></td>
+            <td><input type="text" id='writer' name="writer" value="<?php echo $arr['writer']; ?>" ></td>
         </tr>
         <tr>
             <td>movie_name:</td>
-            <td><input type="text" name="movie_name" value=" <?php echo $arr['movie_name']; ?>" ></td>
+            <td><input type="text" id='movie_name' name="movie_name" value=" <?php echo $arr['movie_name']; ?>" ></td>
         </tr>
         <tr>
             <td>book_name:</td>
-            <td><input type="text" name="book_name" value="<?php echo $arr['book_name']; ?>"></td>
+            <td><input type="text" id='book_name' name="book_name" value="<?php echo $arr['book_name']; ?>"></td>
         </tr>
         <tr>
             <td><input type="submit"></td>
@@ -69,12 +69,14 @@ function showInputForm( $arr ){
         </tbody>
     </table>
 </form>
-<div id="strongWordDiv" class="strongWordDiv"></div>
-<div id="swDocListDiv" class="swDocListDiv"></div>
-<div id="swDocDiv" class="swDocDiv"></div>
-
-<div id="docsForVerify">
-
+<div id="swArea">
+    <div id="strongWordDiv" class="strongWordDiv"></div>
+    <div id="swDocListDiv" class="swDocListDiv"></div>
+    <div id="swDocDiv" class="swDocDiv"></div>
+</div>
+<div id="docVerifyArea">
+    <div id="docsForVerify">
+    </div>
 </div>
 <script src="<?php echo getJsDirPath().'/logic.js'; ?>" ></script>
 <?php
